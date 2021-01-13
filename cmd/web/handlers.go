@@ -4,27 +4,22 @@ import (
 	"alexedwards.net/snippetbox/pkg/models"
 	"errors"
 	"fmt"
-	"html/template"
 	"net/http"
 	"strconv"
 )
 
-func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.URL.Query().Get("id"))
-	if err != nil || id < 1 {
+func (app *application) home(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
 		app.notFound(w)
 		return
 	}
-
-	s, err := app.snippets.Get(id)
+	s, err := app.snippets.Latest()
 	if err != nil {
-		if errors.Is(err, models.ErrNoRecord) {
-			app.notFound(w)
-		} else {
-			app.serverError(w, err)
-		}
+		app.serverError(w, err)
 		return
 	}
+	for _, snippet := range s {
+		fmt.Fprintf(w, "%v\n", snippet)
+	}
 
-	fmt.Fprintf(w, "%v", s)
 }
